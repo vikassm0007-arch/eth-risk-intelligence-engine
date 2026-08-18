@@ -1,0 +1,14 @@
+======================================================================
+RUNNING E2E PIPELINE & TREESHAP LATENCY VERIFICATION
+======================================================================
+[Baseline Tx Test] Composite Risk Score: 0.11 (LOW)
+[Baseline Tx Test] TreeSHAP Execution Latency: 170.69 ms
+[Baseline Tx Test] Total Pipeline Execution Time: 170.87 ms
+Traceback (most recent call last):
+  File "C:\Users\vikas\.gemini\antigravity\scratch\eth-risk-intelligence\backend\test_pipeline.py", line 55, in <module>
+    print("=" * 70)
+    ~~~~~^^^^^^^^^^
+  File "C:\Users\vikas\.gemini\antigravity\scratch\eth-risk-intelligence\backend\test_pipeline.py", line 32, in test_full_pipeline
+    print(f"[Baseline Tx Test] Composite Risk Score: {eval_result['composite_risk_score']} ({eval_result['alert_level']})")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: TreeSHAP SLA exceeded 30ms limit!
