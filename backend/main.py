@@ -1,5 +1,5 @@
 """
-FastAPI Server, WebSocket Manager & REST API Endpoints
+FastAPI Server, WebSocket Manager, Auth & Case Management API
 AI-Powered Real-Time Ethereum Transaction Risk Intelligence Platform
 """
 
@@ -11,17 +11,21 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.config import settings
 from backend.db import (
-    init_db, get_db_session, TransactionModel, WalletModel, RiskScoreModel, AlertModel, InvestigationCaseModel
+    init_db, get_db_session, TransactionModel, WalletModel, RiskScoreModel, AlertModel, UserModel, CaseModel, AsyncSessionLocal
 )
 from backend.validator import validator, dlq
 from backend.feature_store import feature_extractor
 from backend.model_engine import risk_engine
 from backend.listener import EthereumStreamListener, simulator
+
+# Import Phase 2 Routers
+from backend.auth_router import auth_router, hash_password
+from backend.cases_router import cases_router, ensure_seed_cases
 
 # Global Telemetry Counter
 SYSTEM_STATS = {
@@ -76,6 +80,24 @@ async def process_raw_transaction(raw_payload: Dict[str, Any]):
     if eval_result["alert_level"] in ("HIGH", "CRITICAL"):
         SYSTEM_STATS["high_critical_alerts"] += 1
 
+        # Automatically open investigation case for CRITICAL alerts
+        if eval_result["alert_level"] == "CRITICAL":
+            async with AsyncSessionLocal() as session:
+                case_id = f"CASE-{int(time.time() * 1000) % 1000000}"
+                new_case = CaseModel(
+                    id=case_id,
+                    tx_hash=validated_tx.tx_hash,
+                    wallet_address=validated_tx.from_address,
+                    risk_score=eval_result["composite_risk_score"],
+                    alert_level=eval_result["alert_level"],
+                    status="NEW ALERT",
+                    priority="CRITICAL",
+                    assigned_to_name="Unassigned",
+                    flagged_value_usd=round(validated_tx.value_usd, 2)
+                )
+                session.add(new_case)
+                await session.commit()
+
     # Format Output Payload for WS Broadcast
     broadcast_payload = {
         "tx_hash": validated_tx.tx_hash,
@@ -106,14 +128,33 @@ async def process_raw_transaction(raw_payload: Dict[str, Any]):
     return broadcast_payload
 
 
+# Seed Default Accounts (Admin, Senior Analyst, Junior Analyst)
+async def seed_initial_users():
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(func.count(UserModel.id)))
+        if result.scalar() == 0:
+            demo_users = [
+                UserModel(email="admin@risk.eth", password_hash=hash_password("admin123"), role="Admin", status="ACTIVE"),
+                UserModel(email="senior@risk.eth", password_hash=hash_password("senior123"), role="Senior Analyst", status="ACTIVE"),
+                UserModel(email="junior@risk.eth", password_hash=hash_password("junior123"), role="Junior Analyst", status="ACTIVE"),
+            ]
+            for u in demo_users:
+                session.add(u)
+            await session.commit()
+            print("Seeded demo RBAC accounts: admin@risk.eth, senior@risk.eth, junior@risk.eth")
+
+
 # Background Streaming Task
 stream_listener: Optional[EthereumStreamListener] = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Initialize Database
+    # Startup: Initialize Database & Seed Default Accounts
     await init_db()
-    print("Database initialized.")
+    await seed_initial_users()
+    async with AsyncSessionLocal() as session:
+        await ensure_seed_cases(session)
+    print("Database & RBAC initial seed ready.")
 
     # Launch Ethereum Stream Listener
     global stream_listener
@@ -144,6 +185,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Register Routers
+app.include_router(auth_router)
+app.include_router(cases_router)
+
 
 # WebSockets Live Streaming Endpoint
 @app.websocket("/ws/live-stream")
@@ -160,7 +205,6 @@ async def websocket_endpoint(websocket: WebSocket):
             }
         })
         while True:
-            # Keep connection alive
             await websocket.receive_text()
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket)
@@ -187,18 +231,12 @@ async def get_system_stats():
 
 @app.get("/api/v1/investigate/{wallet}")
 async def investigate_wallet(wallet: str):
-    """
-    Case Investigator API:
-    Returns wallet metadata, risk factors, SHAP breakdown, historical timeline, and 2-hop transaction network graph for Cytoscape.js.
-    """
     wallet_clean = wallet.lower().strip()
     is_sanctioned = wallet_clean in settings.OFAC_SANCTIONED_ADDRESSES
 
-    # Fetch recent transactions for this wallet from Feature Store
     now = time.time()
     records = feature_extractor.feature_store.wallet_tx_history.get(wallet_clean, [])
 
-    # Calculate graph nodes & edges (2-hop counterparty network)
     nodes = [{"data": {"id": wallet_clean, "label": f"{wallet_clean[:6]}...{wallet_clean[-4:]}", "isTarget": True, "isSanctioned": is_sanctioned}}]
     edges = []
     seen_nodes = {wallet_clean}
@@ -218,7 +256,6 @@ async def investigate_wallet(wallet: str):
             nodes.append({"data": {"id": c, "label": f"{c[:6]}...{c[-4:]}", "isSanctioned": c in settings.OFAC_SANCTIONED_ADDRESSES}})
         edges.append({"data": {"source": c, "target": wallet_clean, "label": "Received ETH"}})
 
-    # Generate Case Summary
     timeline = []
     for ts, tx_h, val_eth, counterparty in records[-15:]:
         timeline.append({
@@ -255,9 +292,6 @@ async def investigate_wallet(wallet: str):
 
 @app.post("/api/v1/trigger-attack")
 async def trigger_simulated_attack(attack_type: str = Query("TORNADO_SANCTION", enum=["TORNADO_SANCTION", "SUDDEN_DRAIN", "VELOCITY_BURST"])):
-    """
-    Triggers an immediate high-risk malicious transaction for instant UI validation.
-    """
     raw_tx = simulator.generate_transaction(attack_mode=attack_type)
     result = await process_raw_transaction(raw_tx)
     return {
