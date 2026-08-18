@@ -32,7 +32,7 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({ userToken,
       // Fetch cases list
       const casesRes = await fetch("http://localhost:8001/api/v1/cases", { headers });
       const casesData = await casesRes.json();
-      setCases(casesData);
+      setCases(Array.isArray(casesData) ? casesData : []);
     } catch (err) {
       console.error("Failed to load analytics dashboard data:", err);
     } finally {

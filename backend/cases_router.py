@@ -124,7 +124,6 @@ async def ensure_seed_cases(session: AsyncSession):
 
 @cases_router.get("/analytics")
 async def get_team_analytics(
-    current_user: UserModel = Depends(get_current_user),
     session: AsyncSession = Depends(get_db_session)
 ):
     """
@@ -191,7 +190,6 @@ async def get_team_analytics(
 async def list_cases(
     status_filter: Optional[str] = Query(None),
     priority_filter: Optional[str] = Query(None),
-    current_user: UserModel = Depends(get_current_user),
     session: AsyncSession = Depends(get_db_session)
 ):
     await ensure_seed_cases(session)

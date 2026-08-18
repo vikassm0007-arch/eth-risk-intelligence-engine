@@ -16,9 +16,9 @@ export default function Home() {
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null);
 
   // Authentication State
-  const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [userToken, setUserToken] = useState<string | null>(null);
+  const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
 
   // Telemetry metrics
   const [stats, setStats] = useState({
@@ -33,15 +33,16 @@ export default function Home() {
   isPausedRef.current = isPaused;
 
   useEffect(() => {
-    // Check if token exists in localStorage
+    // 1. Check if token exists in localStorage
     const savedToken = localStorage.getItem("evm_risk_token");
     const savedUser = localStorage.getItem("evm_risk_user");
     if (savedToken && savedUser) {
       setUserToken(savedToken);
       setCurrentUser(JSON.parse(savedUser));
     }
+    setCheckingAuth(false);
 
-    // Connect to WebSocket backend on port 8001
+    // 2. Connect to WebSocket backend on port 8001
     const wsUrl = "ws://localhost:8001/ws/live-stream";
     const socket = new WebSocket(wsUrl);
     wsRef.current = socket;
@@ -87,7 +88,6 @@ export default function Home() {
     setUserToken(token);
     localStorage.setItem("evm_risk_token", token);
     localStorage.setItem("evm_risk_user", JSON.stringify(user));
-    setShowLoginModal(false);
   };
 
   const handleLogout = () => {
@@ -107,6 +107,16 @@ export default function Home() {
     }
   };
 
+  // Auth Wall: If user is not logged in, display full-page Authentication Portal Interface first!
+  if (!checkingAuth && !currentUser) {
+    return (
+      <LoginPage
+        onLoginSuccess={handleLoginSuccess}
+        isFullPage={true}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
       {/* Header */}
@@ -115,7 +125,7 @@ export default function Home() {
         activeTab={activeTab}
         onChangeTab={setActiveTab}
         currentUser={currentUser}
-        onOpenLogin={() => setShowLoginModal(true)}
+        onOpenLogin={() => {}}
         onLogout={handleLogout}
         onTriggerAttack={handleTriggerAttack}
       />
@@ -154,14 +164,6 @@ export default function Home() {
         <InvestigatorModal
           walletAddress={selectedWallet}
           onClose={() => setSelectedWallet(null)}
-        />
-      )}
-
-      {/* Enterprise Authentication Modal */}
-      {showLoginModal && (
-        <LoginPage
-          onLoginSuccess={handleLoginSuccess}
-          onClose={() => setShowLoginModal(false)}
         />
       )}
     </div>

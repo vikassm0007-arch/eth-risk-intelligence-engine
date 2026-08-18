@@ -21,7 +21,9 @@ export const CaseWorkflowTable: React.FC<CaseWorkflowTableProps> = ({
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [priorityFilter, setPriorityFilter] = useState("ALL");
 
-  const filteredCases = cases.filter(c => {
+  const safeCases = Array.isArray(cases) ? cases : [];
+
+  const filteredCases = safeCases.filter(c => {
     if (statusFilter !== "ALL" && c.status !== statusFilter) return false;
     if (priorityFilter !== "ALL" && c.priority !== priorityFilter) return false;
     return true;
