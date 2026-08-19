@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Shield, Lock, Wallet, Mail, AlertCircle, ArrowRight, UserCheck, Activity, ShieldAlert, Cpu } from "lucide-react";
+import { API_BASE } from "@/config";
 
 interface LoginPageProps {
   onLoginSuccess: (user: any, token: string) => void;
@@ -17,12 +18,32 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onClose, i
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper fetch with fallback across 127.0.0.1 and localhost
+  const safeFetch = async (endpoint: string, options: RequestInit = {}) => {
+    const urls = [
+      `${API_BASE}${endpoint}`,
+      `http://127.0.0.1:8001${endpoint}`,
+      `http://localhost:8001${endpoint}`
+    ];
+    
+    let lastError: any = null;
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, options);
+        return res;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+    throw lastError || new Error("Failed to connect to authentication server");
+  };
+
   const handleStandardLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:8001/api/v1/auth/login", {
+      const res = await safeFetch("/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -31,7 +52,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onClose, i
       if (!res.ok) throw new Error(data.detail || "Login failed");
       onLoginSuccess(data.user, data.access_token);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Failed to connect to authentication backend");
     } finally {
       setLoading(false);
     }
@@ -40,17 +61,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onClose, i
   const handleDemoPreset = async (demoEmail: string, demoRole: string) => {
     setLoading(true);
     setError(null);
+    const pass = demoEmail.includes("admin") ? "admin123" : (demoEmail.includes("senior") ? "senior123" : "junior123");
     try {
-      const res = await fetch("http://localhost:8001/api/v1/auth/login", {
+      const res = await safeFetch("/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: demoEmail, password: demoEmail.includes("admin") ? "admin123" : (demoEmail.includes("senior") ? "senior123" : "junior123") })
+        body: JSON.stringify({ email: demoEmail, password: pass })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Login failed");
       onLoginSuccess(data.user, data.access_token);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Failed to connect to authentication backend");
     } finally {
       setLoading(false);
     }
@@ -65,10 +87,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onClose, i
         addr = "0x7a250d5630b4cf539739df2c5dacb4c659f2488d";
       }
 
-      const nonceRes = await fetch(`http://localhost:8001/api/v1/auth/siwe/nonce?address=${addr}`);
+      const nonceRes = await safeFetch(`/api/v1/auth/siwe/nonce?address=${addr}`);
       const nonceData = await nonceRes.json();
 
-      const verifyRes = await fetch("http://localhost:8001/api/v1/auth/siwe/verify", {
+      const verifyRes = await safeFetch("/api/v1/auth/siwe/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -81,7 +103,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onClose, i
       if (!verifyRes.ok) throw new Error(data.detail || "SIWE authentication failed");
       onLoginSuccess(data.user, data.access_token);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Failed to connect to SIWE authentication backend");
     } finally {
       setLoading(false);
     }
