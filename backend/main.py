@@ -154,21 +154,24 @@ async def process_raw_transaction(raw_payload: Dict[str, Any]):
 
         # Automatically open investigation case for CRITICAL alerts
         if eval_result["alert_level"] == "CRITICAL":
-            async with AsyncSessionLocal() as session:
-                case_id = f"CASE-{int(time.time() * 1000) % 1000000}"
-                new_case = CaseModel(
-                    id=case_id,
-                    tx_hash=validated_tx.tx_hash,
-                    wallet_address=validated_tx.from_address,
-                    risk_score=eval_result["composite_risk_score"],
-                    alert_level=eval_result["alert_level"],
-                    status="NEW ALERT",
-                    priority="CRITICAL",
-                    assigned_to_name="Unassigned",
-                    flagged_value_usd=round(validated_tx.value_usd, 2)
-                )
-                session.add(new_case)
-                await session.commit()
+            try:
+                async with AsyncSessionLocal() as session:
+                    case_id = f"CASE-{uuid.uuid4().hex[:8].upper()}"
+                    new_case = CaseModel(
+                        id=case_id,
+                        tx_hash=validated_tx.tx_hash,
+                        wallet_address=validated_tx.from_address,
+                        risk_score=eval_result["composite_risk_score"],
+                        alert_level=eval_result["alert_level"],
+                        status="NEW ALERT",
+                        priority="CRITICAL",
+                        assigned_to_name="Unassigned",
+                        flagged_value_usd=round(validated_tx.value_usd, 2)
+                    )
+                    session.add(new_case)
+                    await session.commit()
+            except Exception:
+                pass  # Ignore case creation collisions gracefully
 
     # Format Output Payload for WS Broadcast
     broadcast_payload = {
