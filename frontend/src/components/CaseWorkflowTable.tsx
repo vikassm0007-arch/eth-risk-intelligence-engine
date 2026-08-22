@@ -31,7 +31,7 @@ export const CaseWorkflowTable: React.FC<CaseWorkflowTableProps> = ({
 
   const handleStatusChange = async (caseId: string, newStatus: string) => {
     try {
-      const res = await fetch(`http://localhost:8001/api/v1/cases/${caseId}/status`, {
+      const res = await fetch(`http://localhost:8000/api/v1/cases/${caseId}/status`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

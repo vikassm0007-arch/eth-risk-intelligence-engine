@@ -22,8 +22,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onClose, i
   const safeFetch = async (endpoint: string, options: RequestInit = {}) => {
     const urls = [
       `${API_BASE}${endpoint}`,
-      `http://127.0.0.1:8001${endpoint}`,
-      `http://localhost:8001${endpoint}`
+      `http://127.0.0.1:8000${endpoint}`,
+      `http://localhost:8000${endpoint}`
     ];
     
     let lastError: any = null;

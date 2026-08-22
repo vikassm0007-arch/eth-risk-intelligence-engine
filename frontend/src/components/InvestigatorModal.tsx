@@ -18,7 +18,7 @@ export const InvestigatorModal: React.FC<InvestigatorModalProps> = ({ walletAddr
     const fetchInvestigation = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:8001/api/v1/investigate/${walletAddress}`);
+        const res = await fetch(`http://localhost:8000/api/v1/investigate/${walletAddress}`);
         const result = await res.json();
         setData(result);
       } catch (err) {

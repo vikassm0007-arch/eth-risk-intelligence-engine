@@ -25,12 +25,18 @@ export const ProgressDashboard: React.FC<ProgressDashboardProps> = ({ userToken,
       if (userToken) headers["Authorization"] = `Bearer ${userToken}`;
 
       // Fetch analytics summary
-      const analyticsRes = await fetch("http://localhost:8001/api/v1/cases/analytics", { headers });
-      const analyticsData = await analyticsRes.json();
-      setAnalytics(analyticsData);
+      const analyticsRes = await fetch("http://localhost:8000/api/v1/cases/analytics", {
+        headers: userToken ? { "Authorization": `Bearer ${userToken}` } : {}
+      });
+      if (analyticsRes.ok) {
+        const data = await analyticsRes.json();
+        setAnalytics(data);
+      }
 
       // Fetch cases list
-      const casesRes = await fetch("http://localhost:8001/api/v1/cases", { headers });
+      const casesRes = await fetch("http://localhost:8000/api/v1/cases", {
+        headers: userToken ? { "Authorization": `Bearer ${userToken}` } : {}
+      });
       const casesData = await casesRes.json();
       setCases(Array.isArray(casesData) ? casesData : []);
     } catch (err) {

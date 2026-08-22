@@ -24,7 +24,7 @@ export const CaseDetailDrawer: React.FC<CaseDetailDrawerProps> = ({
     if (!newNote.trim()) return;
     setLoadingNote(true);
     try {
-      const res = await fetch(`http://localhost:8001/api/v1/cases/${caseData.id}/notes`, {
+      const res = await fetch(`http://localhost:8000/api/v1/cases/${caseData.id}/notes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

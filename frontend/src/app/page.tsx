@@ -44,13 +44,13 @@ export default function Home() {
     }
     setCheckingAuth(false);
 
-    // 2. Connect to WebSocket backend on port 8001
-    const wsUrl = "ws://localhost:8001/ws/live-transactions";
+    // 2. Connect to WebSocket backend on port 8000
+    const wsUrl = "ws://localhost:8000/ws/live-transactions";
     const socket = new WebSocket(wsUrl);
     wsRef.current = socket;
 
     socket.onopen = () => {
-      console.log("Connected to Real-Time WebSocket Risk & INR Stream on port 8001");
+      console.log("Connected to Real-Time WebSocket Risk & INR Stream on port 8000");
       setWsConnected(true);
     };
 
@@ -109,7 +109,7 @@ export default function Home() {
 
   const handleTriggerAttack = async (attackType: string) => {
     try {
-      await fetch(`http://localhost:8001/api/v1/trigger-attack?attack_type=${attackType}`, {
+      await fetch(`http://localhost:8000/api/v1/trigger-attack?attack_type=${attackType}`, {
         method: "POST"
       });
     } catch (err) {
