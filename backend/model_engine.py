@@ -135,6 +135,12 @@ class HybridRiskEngine:
             rule_score += settings.RULE_RISK_GAS_SPIKE_WEIGHT
             reasons.append(f"MEDIUM: Abnormal gas price spike ({gas_spike:.1f}x network base fee)")
 
+        # Rule 5: High INR Transaction Threshold (> ₹1 Crore INR / ₹10,000,000)
+        val_inr = features.get("value_inr", 0.0)
+        if val_inr >= 10000000.0:
+            rule_score += 35.0
+            reasons.append(f"HIGH: High INR volume transaction exceeding ₹1 Crore threshold (₹{val_inr / 10000000.0:.2f} Cr)")
+
         return min(100.0, rule_score), reasons
 
     def evaluate(self, features: Dict[str, Any]) -> Dict[str, Any]:

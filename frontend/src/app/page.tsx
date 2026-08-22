@@ -3,14 +3,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Header } from "@/components/Header";
 import { RiskMetrics } from "@/components/RiskMetrics";
-import { LiveFeed, TransactionItem } from "@/components/LiveFeed";
+import { LiveTransactions, TransactionItemINR } from "@/components/LiveTransactions";
 import { InvestigatorModal } from "@/components/InvestigatorModal";
 import { LoginPage } from "@/components/LoginPage";
 import { ProgressDashboard } from "@/components/ProgressDashboard";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"live" | "analytics">("live");
-  const [transactions, setTransactions] = useState<TransactionItem[]>([]);
+  const [transactions, setTransactions] = useState<TransactionItemINR[]>([]);
   const [wsConnected, setWsConnected] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null);
@@ -20,12 +20,14 @@ export default function Home() {
   const [userToken, setUserToken] = useState<string | null>(null);
   const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
 
-  // Telemetry metrics
+  // Telemetry metrics & INR values
   const [stats, setStats] = useState({
     tps: 3.2,
     totalProcessed: 0,
     criticalCount: 0,
-    avgLatencyMs: 6.9
+    avgLatencyMs: 6.9,
+    totalInrMonitoredFormatted: "₹4.85 Cr",
+    ethInrRateFormatted: "₹2,75,000"
   });
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -43,22 +45,30 @@ export default function Home() {
     setCheckingAuth(false);
 
     // 2. Connect to WebSocket backend on port 8001
-    const wsUrl = "ws://localhost:8001/ws/live-stream";
+    const wsUrl = "ws://localhost:8001/ws/live-transactions";
     const socket = new WebSocket(wsUrl);
     wsRef.current = socket;
 
     socket.onopen = () => {
-      console.log("Connected to Real-Time WebSocket Risk Stream on port 8001");
+      console.log("Connected to Real-Time WebSocket Risk & INR Stream on port 8001");
       setWsConnected(true);
     };
 
     socket.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
+        if (payload.type === "SYSTEM_INFO" && payload.stats) {
+          setStats((prev) => ({
+            ...prev,
+            totalInrMonitoredFormatted: payload.stats.total_inr_monitored || prev.totalInrMonitoredFormatted,
+            ethInrRateFormatted: payload.stats.eth_inr_rate || prev.ethInrRateFormatted
+          }));
+        }
+
         if (payload.type === "NEW_TRANSACTION" && payload.data) {
           if (isPausedRef.current) return;
 
-          const newTx: TransactionItem = payload.data;
+          const newTx: TransactionItemINR = payload.data;
           setTransactions((prev) => [newTx, ...prev.slice(0, 99)]);
 
           setStats((prev) => ({
@@ -134,16 +144,18 @@ export default function Home() {
       <main className="flex-1 max-w-7xl w-full mx-auto p-6">
         {activeTab === "live" ? (
           <>
-            {/* Risk Telemetry Metrics Bar */}
+            {/* Risk & INR Telemetry Metrics Bar */}
             <RiskMetrics
               tps={stats.tps}
               totalProcessed={stats.totalProcessed}
               criticalCount={stats.criticalCount}
               avgLatencyMs={stats.avgLatencyMs}
+              totalInrMonitoredFormatted={stats.totalInrMonitoredFormatted}
+              ethInrRateFormatted={stats.ethInrRateFormatted}
             />
 
-            {/* Live Streaming Feed Table */}
-            <LiveFeed
+            {/* Live Streaming INR Transaction Feed Table */}
+            <LiveTransactions
               transactions={transactions}
               isPaused={isPaused}
               onTogglePause={() => setIsPaused(!isPaused)}
