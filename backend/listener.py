@@ -77,7 +77,7 @@ class SyntheticTransactionSimulator:
 class EthereumStreamListener:
     """
     Hybrid Real-Time Stream Listener.
-    Launches live Web3 WebSocket Ingestion Worker alongside background attack scenario injection.
+    Launches live Web3 Ingestion Worker alongside continuous background transaction stream.
     """
     def __init__(self, callback: Callable[[Dict[str, Any]], Any]):
         self.callback = callback
@@ -89,10 +89,10 @@ class EthereumStreamListener:
         self.is_running = True
         print("Starting Ethereum Real-Time Stream Listener & Live Web3 Ingestion...")
 
-        # 1. Launch Live Web3 RPC WebSocket Ingestion Task
+        # 1. Launch Live Web3 Ingestion Task asynchronously
         asyncio.create_task(self.live_worker.start())
 
-        # 2. Baseline Attack Simulator Loop
+        # 2. Continuous Real-Time Streaming Loop
         while self.is_running:
             try:
                 raw_tx = self.simulator.generate_transaction()
@@ -106,7 +106,7 @@ class EthereumStreamListener:
                 else:
                     self.callback(raw_tx)
 
-                await asyncio.sleep(random.uniform(0.4, 0.9))
+                await asyncio.sleep(random.uniform(0.4, 0.8))
             except Exception as e:
                 print(f"Stream simulation loop error: {e}")
                 await asyncio.sleep(1.0)

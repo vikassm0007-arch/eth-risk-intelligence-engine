@@ -8,9 +8,56 @@ import { InvestigatorModal } from "@/components/InvestigatorModal";
 import { LoginPage } from "@/components/LoginPage";
 import { ProgressDashboard } from "@/components/ProgressDashboard";
 
+const INITIAL_TRANSACTIONS: TransactionItemINR[] = [
+  {
+    tx_hash: "0x8f3c49a12b07e8910d54316c28f99e2110293847561a0b3c4d5e6f7a8b9c0d1e",
+    block_number: 19582041,
+    timestamp: Date.now() / 1000 - 12,
+    from_address: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+    to_address: "0x28c6c06298d514db089934071355e5743bf21d60",
+    value_eth: 1.45,
+    value_usd: 3494.50,
+    value_inr: 398750.00,
+    value_inr_formatted: "₹3.98 Lakh",
+    gas_price_gwei: 22.4,
+    gas_inr: 246.40,
+    input_data: "0x38ed1739",
+    is_erc20: true,
+    ml_probability: 0.12,
+    rule_risk_score: 10.0,
+    composite_risk_score: 11.4,
+    alert_level: "LOW",
+    reasons: ["Standard Uniswap router interaction"],
+    top_shap_drivers: [{ feature: "Account Age", shap_value: -0.15, feature_value: 450 }],
+    execution_time_ms: 6.4
+  },
+  {
+    tx_hash: "0x1a9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0f9e",
+    block_number: 19582040,
+    timestamp: Date.now() / 1000 - 28,
+    from_address: "0x3cffd56b47b7b41c56258d9c7731abdc360e0739",
+    to_address: "0xd90e2f925da726b50c4ed8d0fb90ad053324f31b",
+    value_eth: 12.50,
+    value_usd: 30125.00,
+    value_inr: 3437500.00,
+    value_inr_formatted: "₹34.38 Lakh",
+    gas_price_gwei: 145.0,
+    gas_inr: 1595.00,
+    input_data: "0xb214faa5",
+    is_erc20: false,
+    ml_probability: 0.98,
+    rule_risk_score: 100.0,
+    composite_risk_score: 99.4,
+    alert_level: "CRITICAL",
+    reasons: ["CRITICAL: Sanctioned OFAC / Tornado Cash Entity interaction (+100)"],
+    top_shap_drivers: [{ feature: "Sanctioned Entity Flag", shap_value: 0.85, feature_value: 1 }],
+    execution_time_ms: 7.1
+  }
+];
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"live" | "analytics">("live");
-  const [transactions, setTransactions] = useState<TransactionItemINR[]>([]);
+  const [transactions, setTransactions] = useState<TransactionItemINR[]>(INITIAL_TRANSACTIONS);
   const [wsConnected, setWsConnected] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null);
@@ -23,8 +70,8 @@ export default function Home() {
   // Telemetry metrics & INR values
   const [stats, setStats] = useState({
     tps: 3.2,
-    totalProcessed: 0,
-    criticalCount: 0,
+    totalProcessed: 2,
+    criticalCount: 1,
     avgLatencyMs: 6.9,
     totalInrMonitoredFormatted: "₹4.85 Cr",
     ethInrRateFormatted: "₹2,75,000"
@@ -44,52 +91,70 @@ export default function Home() {
     }
     setCheckingAuth(false);
 
-    // 2. Connect to WebSocket backend on port 8000
-    const wsUrl = "ws://localhost:8000/ws/live-transactions";
-    const socket = new WebSocket(wsUrl);
-    wsRef.current = socket;
+    // 2. Connect to WebSocket backend on port 8000 with auto-reconnect
+    let socket: WebSocket | null = null;
+    let reconnectTimer: any = null;
 
-    socket.onopen = () => {
-      console.log("Connected to Real-Time WebSocket Risk & INR Stream on port 8000");
-      setWsConnected(true);
-    };
-
-    socket.onmessage = (event) => {
+    const connectWebSocket = () => {
       try {
-        const payload = JSON.parse(event.data);
-        if (payload.type === "SYSTEM_INFO" && payload.stats) {
-          setStats((prev) => ({
-            ...prev,
-            totalInrMonitoredFormatted: payload.stats.total_inr_monitored || prev.totalInrMonitoredFormatted,
-            ethInrRateFormatted: payload.stats.eth_inr_rate || prev.ethInrRateFormatted
-          }));
-        }
+        const wsUrl = "ws://localhost:8000/ws/live-transactions";
+        socket = new WebSocket(wsUrl);
+        wsRef.current = socket;
 
-        if (payload.type === "NEW_TRANSACTION" && payload.data) {
-          if (isPausedRef.current) return;
+        socket.onopen = () => {
+          console.log("Connected to Real-Time WebSocket Risk Stream on port 8000");
+          setWsConnected(true);
+        };
 
-          const newTx: TransactionItemINR = payload.data;
-          setTransactions((prev) => [newTx, ...prev.slice(0, 99)]);
+        socket.onmessage = (event) => {
+          try {
+            const payload = JSON.parse(event.data);
+            if (payload.type === "SYSTEM_INFO" && payload.stats) {
+              setStats((prev) => ({
+                ...prev,
+                totalInrMonitoredFormatted: payload.stats.total_inr_monitored || prev.totalInrMonitoredFormatted,
+                ethInrRateFormatted: payload.stats.eth_inr_rate || prev.ethInrRateFormatted
+              }));
+            }
 
-          setStats((prev) => ({
-            ...prev,
-            totalProcessed: prev.totalProcessed + 1,
-            criticalCount: prev.criticalCount + (newTx.alert_level === "CRITICAL" || newTx.alert_level === "HIGH" ? 1 : 0),
-            tps: parseFloat((3.0 + Math.random() * 1.5).toFixed(1)),
-            avgLatencyMs: parseFloat(((prev.avgLatencyMs * 9 + newTx.execution_time_ms) / 10).toFixed(1))
-          }));
-        }
+            if (payload.type === "NEW_TRANSACTION" && payload.data) {
+              if (isPausedRef.current) return;
+
+              const newTx: TransactionItemINR = payload.data;
+              setTransactions((prev) => [newTx, ...prev.slice(0, 99)]);
+
+              setStats((prev) => ({
+                ...prev,
+                totalProcessed: prev.totalProcessed + 1,
+                criticalCount: prev.criticalCount + (newTx.alert_level === "CRITICAL" || newTx.alert_level === "HIGH" ? 1 : 0),
+                tps: parseFloat((3.0 + Math.random() * 1.5).toFixed(1)),
+                avgLatencyMs: parseFloat(((prev.avgLatencyMs * 9 + newTx.execution_time_ms) / 10).toFixed(1))
+              }));
+            }
+          } catch (err) {
+            console.error("WS Parse Error:", err);
+          }
+        };
+
+        socket.onclose = () => {
+          setWsConnected(false);
+          reconnectTimer = setTimeout(connectWebSocket, 2000);
+        };
+
+        socket.onerror = () => {
+          setWsConnected(false);
+        };
       } catch (err) {
-        console.error("WS Parse Error:", err);
+        setWsConnected(false);
+        reconnectTimer = setTimeout(connectWebSocket, 2000);
       }
     };
 
-    socket.onclose = () => {
-      setWsConnected(false);
-    };
+    connectWebSocket();
 
     return () => {
-      socket.close();
+      if (socket) socket.close();
+      if (reconnectTimer) clearTimeout(reconnectTimer);
     };
   }, []);
 
@@ -108,6 +173,7 @@ export default function Home() {
   };
 
   const handleTriggerAttack = async (attackType: string) => {
+    setIsPaused(false);
     try {
       await fetch(`http://localhost:8000/api/v1/trigger-attack?attack_type=${attackType}`, {
         method: "POST"
