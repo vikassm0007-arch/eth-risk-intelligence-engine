@@ -130,6 +130,16 @@ Navigate to `http://localhost:3001` to view the dashboard.
 
 ---
 
+## 📈 Real-Time Telemetry & Dataset ML Benchmark
+
+* **Dataset Ingestion Pipeline**: Preprocessed 9,841 EVM address records, standardizing 47 numerical features and applying SMOTE oversampling to achieve a 50/50 class balance.
+* **Model Benchmark Metrics**:
+  * **XGBoost Classifier**: F1-Score: `97.92%` | ROC-AUC: `99.89%` | Precision: `98.83%` | Recall: `97.02%`
+  * **LightGBM Classifier**: F1-Score: `97.92%` | ROC-AUC: `99.83%`
+* **Real-Time Data Persistence**: Automated stream execution storing transactions, INR valuations, SHAP drivers, and cases in `eth_risk.db`.
+
+---
+
 ## 📊 Risk Engine & SHAP Output Sample
 
 When a transaction is flagged, the platform produces a JSON payload containing both quantitative metrics and natural language explanations:
