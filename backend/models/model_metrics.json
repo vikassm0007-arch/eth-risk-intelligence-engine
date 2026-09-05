@@ -1,0 +1,407 @@
+{
+  "dataset_stats": {
+    "total_records": 9841,
+    "total_features": 47,
+    "legit_count": 7662,
+    "fraud_count": 2179,
+    "fraud_ratio_pct": 22.14,
+    "total_erc20_tokens": 574,
+    "original_class_counts": {
+      "0": 7662,
+      "1": 2179
+    },
+    "smote_class_counts": {
+      "0": 6129,
+      "1": 6129
+    }
+  },
+  "xgboost": {
+    "model_name": "XGBoost Classifier",
+    "precision": 0.9883,
+    "recall": 0.9702,
+    "f1_score": 0.9792,
+    "roc_auc": 0.9989,
+    "confusion_matrix": {
+      "true_negative": 1528,
+      "false_positive": 5,
+      "false_negative": 13,
+      "true_positive": 423
+    }
+  },
+  "lightgbm": {
+    "model_name": "LightGBM Classifier",
+    "precision": 0.986,
+    "recall": 0.9725,
+    "f1_score": 0.9792,
+    "roc_auc": 0.9983,
+    "confusion_matrix": {
+      "true_negative": 1527,
+      "false_positive": 6,
+      "false_negative": 12,
+      "true_positive": 424
+    }
+  },
+  "top_shap_features": [
+    {
+      "feature": "ERC20 most sent token type",
+      "importance": 2.1343,
+      "description": "Risk driver contribution metric for 'ERC20 most sent token type'"
+    },
+    {
+      "feature": "ERC20_most_rec_token_type",
+      "importance": 1.4398,
+      "description": "Risk driver contribution metric for 'ERC20_most_rec_token_type'"
+    },
+    {
+      "feature": "Time Diff between first and last (Mins)",
+      "importance": 0.584,
+      "description": "Wallet active lifespan in minutes"
+    },
+    {
+      "feature": "Total ERC20 tnxs",
+      "importance": 0.5596,
+      "description": "Total number of ERC-20 token transactions"
+    },
+    {
+      "feature": "ERC20 uniq rec addr",
+      "importance": 0.3728,
+      "description": "Risk driver contribution metric for 'ERC20 uniq rec addr'"
+    },
+    {
+      "feature": "Unique Received From Addresses",
+      "importance": 0.2946,
+      "description": "Count of distinct source addresses received from"
+    },
+    {
+      "feature": "ERC20 uniq sent addr",
+      "importance": 0.214,
+      "description": "Risk driver contribution metric for 'ERC20 uniq sent addr'"
+    },
+    {
+      "feature": "avg val received",
+      "importance": 0.1966,
+      "description": "Average Ether value received per transaction"
+    },
+    {
+      "feature": "total transactions (including tnx to create contract",
+      "importance": 0.1194,
+      "description": "Risk driver contribution metric for 'total transactions (including tnx to create contract'"
+    },
+    {
+      "feature": "ERC20 uniq sent token name",
+      "importance": 0.1017,
+      "description": "Risk driver contribution metric for 'ERC20 uniq sent token name'"
+    },
+    {
+      "feature": "ERC20 avg val sent",
+      "importance": 0.0865,
+      "description": "Risk driver contribution metric for 'ERC20 avg val sent'"
+    },
+    {
+      "feature": "Avg min between received tnx",
+      "importance": 0.0801,
+      "description": "Average time interval (minutes) between incoming transactions"
+    },
+    {
+      "feature": "ERC20 uniq rec contract addr",
+      "importance": 0.0532,
+      "description": "Risk driver contribution metric for 'ERC20 uniq rec contract addr'"
+    },
+    {
+      "feature": "ERC20 avg val rec",
+      "importance": 0.0456,
+      "description": "Risk driver contribution metric for 'ERC20 avg val rec'"
+    },
+    {
+      "feature": "Sent tnx",
+      "importance": 0.0452,
+      "description": "Total outgoing transaction count"
+    }
+  ],
+  "all_shap_features": [
+    {
+      "feature": "ERC20 most sent token type",
+      "importance": 2.1343,
+      "description": "Risk driver contribution metric for 'ERC20 most sent token type'"
+    },
+    {
+      "feature": "ERC20_most_rec_token_type",
+      "importance": 1.4398,
+      "description": "Risk driver contribution metric for 'ERC20_most_rec_token_type'"
+    },
+    {
+      "feature": "Time Diff between first and last (Mins)",
+      "importance": 0.584,
+      "description": "Wallet active lifespan in minutes"
+    },
+    {
+      "feature": "Total ERC20 tnxs",
+      "importance": 0.5596,
+      "description": "Total number of ERC-20 token transactions"
+    },
+    {
+      "feature": "ERC20 uniq rec addr",
+      "importance": 0.3728,
+      "description": "Risk driver contribution metric for 'ERC20 uniq rec addr'"
+    },
+    {
+      "feature": "Unique Received From Addresses",
+      "importance": 0.2946,
+      "description": "Count of distinct source addresses received from"
+    },
+    {
+      "feature": "ERC20 uniq sent addr",
+      "importance": 0.214,
+      "description": "Risk driver contribution metric for 'ERC20 uniq sent addr'"
+    },
+    {
+      "feature": "avg val received",
+      "importance": 0.1966,
+      "description": "Average Ether value received per transaction"
+    },
+    {
+      "feature": "total transactions (including tnx to create contract",
+      "importance": 0.1194,
+      "description": "Risk driver contribution metric for 'total transactions (including tnx to create contract'"
+    },
+    {
+      "feature": "ERC20 uniq sent token name",
+      "importance": 0.1017,
+      "description": "Risk driver contribution metric for 'ERC20 uniq sent token name'"
+    },
+    {
+      "feature": "ERC20 avg val sent",
+      "importance": 0.0865,
+      "description": "Risk driver contribution metric for 'ERC20 avg val sent'"
+    },
+    {
+      "feature": "Avg min between received tnx",
+      "importance": 0.0801,
+      "description": "Average time interval (minutes) between incoming transactions"
+    },
+    {
+      "feature": "ERC20 uniq rec contract addr",
+      "importance": 0.0532,
+      "description": "Risk driver contribution metric for 'ERC20 uniq rec contract addr'"
+    },
+    {
+      "feature": "ERC20 avg val rec",
+      "importance": 0.0456,
+      "description": "Risk driver contribution metric for 'ERC20 avg val rec'"
+    },
+    {
+      "feature": "Sent tnx",
+      "importance": 0.0452,
+      "description": "Total outgoing transaction count"
+    },
+    {
+      "feature": "total ether received",
+      "importance": 0.0435,
+      "description": "Cumulative Ether received by address"
+    },
+    {
+      "feature": "min val sent",
+      "importance": 0.0427,
+      "description": "Risk driver contribution metric for 'min val sent'"
+    },
+    {
+      "feature": "min value received",
+      "importance": 0.0423,
+      "description": "Minimum Ether value received"
+    },
+    {
+      "feature": "total ether balance",
+      "importance": 0.0312,
+      "description": "Net wallet Ether balance (ETH in vs ETH out)"
+    },
+    {
+      "feature": "ERC20 min val sent",
+      "importance": 0.027,
+      "description": "Risk driver contribution metric for 'ERC20 min val sent'"
+    },
+    {
+      "feature": "ERC20 max val sent",
+      "importance": 0.026,
+      "description": "Risk driver contribution metric for 'ERC20 max val sent'"
+    },
+    {
+      "feature": "ERC20 uniq rec token name",
+      "importance": 0.0233,
+      "description": "Risk driver contribution metric for 'ERC20 uniq rec token name'"
+    },
+    {
+      "feature": "avg val sent",
+      "importance": 0.022,
+      "description": "Risk driver contribution metric for 'avg val sent'"
+    },
+    {
+      "feature": "Avg min between sent tnx",
+      "importance": 0.0218,
+      "description": "Average time interval (minutes) between outgoing transactions"
+    },
+    {
+      "feature": "ERC20 max val rec",
+      "importance": 0.0188,
+      "description": "Risk driver contribution metric for 'ERC20 max val rec'"
+    },
+    {
+      "feature": "Received Tnx",
+      "importance": 0.0162,
+      "description": "Total incoming transaction count"
+    },
+    {
+      "feature": "total Ether sent",
+      "importance": 0.0096,
+      "description": "Cumulative Ether sent by address"
+    },
+    {
+      "feature": "ERC20 min val rec",
+      "importance": 0.0088,
+      "description": "Risk driver contribution metric for 'ERC20 min val rec'"
+    },
+    {
+      "feature": "Unique Sent To Addresses",
+      "importance": 0.0066,
+      "description": "Count of distinct destination addresses sent to"
+    },
+    {
+      "feature": "ERC20 total Ether received",
+      "importance": 0.0056,
+      "description": "Total volume of ERC-20 tokens received"
+    },
+    {
+      "feature": "Number of Created Contracts",
+      "importance": 0.0043,
+      "description": "Risk driver contribution metric for 'Number of Created Contracts'"
+    },
+    {
+      "feature": "max value received",
+      "importance": 0.0039,
+      "description": "Maximum Ether value received"
+    },
+    {
+      "feature": "ERC20 total ether sent",
+      "importance": 0.0039,
+      "description": "Total volume of ERC-20 tokens sent"
+    },
+    {
+      "feature": "max val sent",
+      "importance": 0.0026,
+      "description": "Maximum Ether value sent in a single transaction"
+    },
+    {
+      "feature": "min value sent to contract",
+      "importance": 0.0,
+      "description": "Risk driver contribution metric for 'min value sent to contract'"
+    },
+    {
+      "feature": "max val sent to contract",
+      "importance": 0.0,
+      "description": "Risk driver contribution metric for 'max val sent to contract'"
+    },
+    {
+      "feature": "avg value sent to contract",
+      "importance": 0.0,
+      "description": "Risk driver contribution metric for 'avg value sent to contract'"
+    },
+    {
+      "feature": "total ether sent contracts",
+      "importance": 0.0,
+      "description": "Risk driver contribution metric for 'total ether sent contracts'"
+    },
+    {
+      "feature": "ERC20 total Ether sent contract",
+      "importance": 0.0,
+      "description": "Risk driver contribution metric for 'ERC20 total Ether sent contract'"
+    },
+    {
+      "feature": "ERC20 uniq sent addr.1",
+      "importance": 0.0,
+      "description": "Risk driver contribution metric for 'ERC20 uniq sent addr.1'"
+    },
+    {
+      "feature": "ERC20 avg time between sent tnx",
+      "importance": 0.0,
+      "description": "Risk driver contribution metric for 'ERC20 avg time between sent tnx'"
+    },
+    {
+      "feature": "ERC20 avg time between rec tnx",
+      "importance": 0.0,
+      "description": "Risk driver contribution metric for 'ERC20 avg time between rec tnx'"
+    },
+    {
+      "feature": "ERC20 avg time between rec 2 tnx",
+      "importance": 0.0,
+      "description": "Risk driver contribution metric for 'ERC20 avg time between rec 2 tnx'"
+    },
+    {
+      "feature": "ERC20 avg time between contract tnx",
+      "importance": 0.0,
+      "description": "Risk driver contribution metric for 'ERC20 avg time between contract tnx'"
+    },
+    {
+      "feature": "ERC20 min val sent contract",
+      "importance": 0.0,
+      "description": "Risk driver contribution metric for 'ERC20 min val sent contract'"
+    },
+    {
+      "feature": "ERC20 max val sent contract",
+      "importance": 0.0,
+      "description": "Risk driver contribution metric for 'ERC20 max val sent contract'"
+    },
+    {
+      "feature": "ERC20 avg val sent contract",
+      "importance": 0.0,
+      "description": "Risk driver contribution metric for 'ERC20 avg val sent contract'"
+    }
+  ],
+  "feature_names": [
+    "Avg min between sent tnx",
+    "Avg min between received tnx",
+    "Time Diff between first and last (Mins)",
+    "Sent tnx",
+    "Received Tnx",
+    "Number of Created Contracts",
+    "Unique Received From Addresses",
+    "Unique Sent To Addresses",
+    "min value received",
+    "max value received",
+    "avg val received",
+    "min val sent",
+    "max val sent",
+    "avg val sent",
+    "min value sent to contract",
+    "max val sent to contract",
+    "avg value sent to contract",
+    "total transactions (including tnx to create contract",
+    "total Ether sent",
+    "total ether received",
+    "total ether sent contracts",
+    "total ether balance",
+    "Total ERC20 tnxs",
+    "ERC20 total Ether received",
+    "ERC20 total ether sent",
+    "ERC20 total Ether sent contract",
+    "ERC20 uniq sent addr",
+    "ERC20 uniq rec addr",
+    "ERC20 uniq sent addr.1",
+    "ERC20 uniq rec contract addr",
+    "ERC20 avg time between sent tnx",
+    "ERC20 avg time between rec tnx",
+    "ERC20 avg time between rec 2 tnx",
+    "ERC20 avg time between contract tnx",
+    "ERC20 min val rec",
+    "ERC20 max val rec",
+    "ERC20 avg val rec",
+    "ERC20 min val sent",
+    "ERC20 max val sent",
+    "ERC20 avg val sent",
+    "ERC20 min val sent contract",
+    "ERC20 max val sent contract",
+    "ERC20 avg val sent contract",
+    "ERC20 uniq sent token name",
+    "ERC20 uniq rec token name",
+    "ERC20 most sent token type",
+    "ERC20_most_rec_token_type"
+  ]
+}
